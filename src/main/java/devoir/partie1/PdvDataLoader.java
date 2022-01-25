@@ -9,6 +9,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+
 public class PdvDataLoader extends DefaultHandler{
 	
 	private ArrayList<PointDeVente> pdvs;
@@ -27,6 +31,14 @@ public class PdvDataLoader extends DefaultHandler{
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser parser = factory.newSAXParser();
 		parser.parse(new File(filePath), this);
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("pwa-mysql");
+		EntityManager em = emf.createEntityManager();
+		em.getTransaction().begin();
+		for(PointDeVente pdevente:pdvs)
+		{
+			em.persist(pdevente);
+		}
+		em.getTransaction().commit();
 	}
 	
 	@Override

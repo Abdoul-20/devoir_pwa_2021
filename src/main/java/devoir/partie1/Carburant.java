@@ -1,10 +1,43 @@
 package devoir.partie1;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+@Entity
 public class Carburant {
 	
-	private String nom;  //Nom du carburant
-	private double prix; //Prix du carburant
-	private String datemsj; //Date de la mise à jour 
+	@Id
+	@GeneratedValue
+	@Column(name="IDcarburant")
+	private long idcarburant;
+	
+
+	@Column(name="Nom")
+	private String nom;  
+	
+	@Column(name="Prix")
+	private double prix; 
+	
+	@Column(name="Datemsj")
+	private String datemsj; 
+	
+	@ManyToOne
+	private PointDeVente pdv;
+	
+	public PointDeVente getPdv() {
+		return pdv;
+	}
+	public void setPdv(PointDeVente pdv) {
+		this.pdv = pdv;
+	}
+	public long getIdcarburant() {
+		return idcarburant;
+	}
+	public void setIdcarburant(long idcarburant) {
+		this.idcarburant = idcarburant;
+	}
 	
 	public String getNom() {
 		return nom;
