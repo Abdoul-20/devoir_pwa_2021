@@ -2,6 +2,7 @@ package devoir.partie1;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -26,19 +27,12 @@ public class PdvDataLoader extends DefaultHandler{
 		pdvs = new ArrayList<>();
 	}
 	
-	public void saveDataFromFileToDB(String filePath) throws Exception
+	public void saveDataFromFileToDB(String filePath, String dbUnit) throws Exception
 	{
-		SAXParserFactory factory = SAXParserFactory.newInstance();
-		SAXParser parser = factory.newSAXParser();
-		parser.parse(new File(filePath), this);
-		EntityManagerFactory emf = Persistence.createEntityManagerFactory("pwa-mysql");
-		EntityManager em = emf.createEntityManager();
-		em.getTransaction().begin();
-		for(PointDeVente pdevente:pdvs)
-		{
-			em.persist(pdevente);
-		}
-		em.getTransaction().commit();
+		readXMLFile(filePath);
+		
+		saveDataToDB(dbUnit);
+		
 	}
 	
 	@Override
@@ -60,7 +54,7 @@ public class PdvDataLoader extends DefaultHandler{
 			carburant.setNom(attrs.getValue("nom"));
 			carburant.setPrix(Double.parseDouble(attrs.getValue("valeur")));
 			carburant.setDatemsj(attrs.getValue("maj"));
-			
+			carburant.setPdv(pdv);
 			pdv.getCarburants().add(carburant);
 		}
 		
@@ -105,6 +99,30 @@ public class PdvDataLoader extends DefaultHandler{
 			res += pointDeVente + "\n";
 		
 		return res;
+	}
+	
+	private void readXMLFile(String filePath) throws Exception
+	{
+		SAXParserFactory factory = SAXParserFactory.newInstance();
+		SAXParser parser = factory.newSAXParser();
+		parser.parse(new File(filePath), this);
+	}
+	
+	private void saveDataToDB(String dbUnit)
+	{
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory(dbUnit);
+		EntityManager em = emf.createEntityManager();
+		em.getTransaction().begin();
+		
+		for(PointDeVente pdevente : pdvs)
+		{
+			em.persist(pdevente);
+			List<Carburant> carburants = pdevente.getCarburants();
+			for (Carburant carburant : carburants)
+				em.persist(carburant);
+		}
+		
+		em.getTransaction().commit();
 	}
 
 }

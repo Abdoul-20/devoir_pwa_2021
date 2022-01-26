@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+
 @Entity
 public class Carburant {
 	
@@ -26,12 +27,6 @@ public class Carburant {
 	@ManyToOne
 	private PointDeVente pdv;
 	
-	public PointDeVente getPdv() {
-		return pdv;
-	}
-	public void setPdv(PointDeVente pdv) {
-		this.pdv = pdv;
-	}
 	public long getIdcarburant() {
 		return idcarburant;
 	}
@@ -56,6 +51,12 @@ public class Carburant {
 	}
 	public void setDatemsj(String datemsj) {
 		this.datemsj = datemsj;
+	}
+	public PointDeVente getPdv() {
+		return pdv;
+	}
+	public void setPdv(PointDeVente pdv) {
+		this.pdv = pdv;
 	}
 	
 	@Override

@@ -11,8 +11,8 @@ public class Main {
 		System.out.println("Loading File");
 		try
 		{
-			loader.saveDataFromFileToDB("src/main/resources/PrixCarburants_instantane.xml");
-			System.out.println(loader);
+			loader.saveDataFromFileToDB("src/main/resources/PrixCarburants_instantane.xml", "pwa-mysql");
+			System.out.println("Loading finish");
 		}
 		catch (Exception e)
 		{
