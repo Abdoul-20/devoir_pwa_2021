@@ -62,6 +62,7 @@ public class PdvDataLoader extends DefaultHandler{
 			carburant.setDatemsj(attrs.getValue("maj"));
 			
 			pdv.getCarburants().add(carburant);
+			carburant.setPdv(pdv);
 		}
 		
 	}
