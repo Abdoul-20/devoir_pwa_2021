@@ -6,28 +6,26 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 @Entity 
 public class PointDeVente {
 	
-@Id 
-@GeneratedValue
-@Column(name="ID")
-private long id; 
-
-@Column(name="CodePostal")
-private String cp; 
-
-@Column(name="Ville")
-private String ville; 
-
-@Column(name="Adresse")
-private String adresse;
-
-@OneToMany(mappedBy="pdv")
-private List<Carburant> carburants;
+	@Id
+	@Column(name="ID")
+	private long id; 
+	
+	@Column(name="CodePostal")
+	private String cp; 
+	
+	@Column(name="Ville")
+	private String ville; 
+	
+	@Column(name="Adresse")
+	private String adresse;
+	
+	@OneToMany(mappedBy="pdv")
+	private List<Carburant> carburants;
 	
 	public PointDeVente()
 	{
