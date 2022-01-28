@@ -4,11 +4,19 @@ package devoir.partie1;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+
+
+
 @Entity 
+@XmlRootElement
 public class PointDeVente {
 	
 	@Id
@@ -32,13 +40,14 @@ public class PointDeVente {
 		carburants = new ArrayList<>();
 	}
 	
-	
+	@XmlAttribute
 	public long getId() {
 		return id;
 	}
 	public void setId(long id) {
 		this.id = id;
 	}
+	@XmlAttribute
 	public String getCp() {
 		return cp;
 	}
@@ -48,15 +57,18 @@ public class PointDeVente {
 	public String getVille() {
 		return ville;
 	}
+	@XmlAttribute
 	public void setVille(String ville) {
 		this.ville = ville;
 	}
 	public String getAdresse() {
 		return adresse;
 	}
+	@XmlAttribute
 	public void setAdresse(String adresse) {
 		this.adresse = adresse;
 	}
+	@XmlElement
 	public List<Carburant> getCarburants() {
 		return carburants;
 	}

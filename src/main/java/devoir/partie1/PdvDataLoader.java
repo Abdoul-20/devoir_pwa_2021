@@ -10,9 +10,9 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
+import devoir.util.DBClient;
+import devoir.util.MysqlClient;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 
 public class PdvDataLoader extends DefaultHandler{
 	
@@ -21,17 +21,23 @@ public class PdvDataLoader extends DefaultHandler{
 	
 	private String elementContent;
 	
-	public PdvDataLoader()
+	protected PdvDataLoader()
 	{
 		elementContent = null;
 		pdvs = new ArrayList<>();
 	}
 	
-	public void saveDataFromFileToDB(String filePath, String dbUnit) throws Exception
+	private static EntityManager getEntityManager() throws Exception
 	{
-		readXMLFile(filePath);
+		return DBClient.getEntityManager(MysqlClient.class);
+	}
+	
+	public static void saveDataFromFileToDB(File fileStream) throws Exception
+	{
+		PdvDataLoader instance = new PdvDataLoader();
+		instance.readXMLFile(fileStream);
 		
-		saveDataToDB(dbUnit);
+		instance.saveDataToDB();
 		
 	}
 	
@@ -102,28 +108,28 @@ public class PdvDataLoader extends DefaultHandler{
 		return res;
 	}
 	
-	private void readXMLFile(String filePath) throws Exception
+	private void readXMLFile(File fileStream) throws Exception
 	{
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser parser = factory.newSAXParser();
-		parser.parse(new File(filePath), this);
+		
+		parser.parse(fileStream, this);
 	}
 	
-	private void saveDataToDB(String dbUnit)
+	private void saveDataToDB() throws Exception
 	{
-		EntityManagerFactory emf = Persistence.createEntityManagerFactory(dbUnit);
-		EntityManager em = emf.createEntityManager();
-		em.getTransaction().begin();
+		EntityManager entityManager = PdvDataLoader.getEntityManager();
+		entityManager.getTransaction().begin();
 		
 		for(PointDeVente pdevente : pdvs)
 		{
-			em.persist(pdevente);
+			entityManager.persist(pdevente);
 			List<Carburant> carburants = pdevente.getCarburants();
 			for (Carburant carburant : carburants)
-				em.persist(carburant);
+				entityManager.persist(carburant);
 		}
 		
-		em.getTransaction().commit();
+		entityManager.getTransaction().commit();
 	}
 
 }
