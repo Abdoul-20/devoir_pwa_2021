@@ -1,5 +1,7 @@
 package devoir.partie1;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 
 import javax.jws.WebService;
@@ -15,11 +17,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import devoir.util.DBClient;
-import devoir.util.MysqlClient;
 import devoir.util.RessourcesLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
@@ -30,19 +32,26 @@ import jakarta.persistence.criteria.Root;
 @Path("/pdvs/")
 public class PointsDeVenteService {
 	
-	private boolean dataLoaded;
+	private LocalDateTime lasteUpdateDateTime;
 	
-	public PointsDeVenteService() throws Exception
+	private String dataSourceURL;
+	
+	public PointsDeVenteService()
 	{
-		dataLoaded = false;
+		System.out.println("Web service PointsDeVenteService launched");
+		
+		lasteUpdateDateTime = LocalDateTime.now();
+		
+		dataSourceURL = "https://donnees.roulez-eco.fr/opendata/instantane";
 	}
 	
 	@GET
 	@Path("/test/")
-	public Object testWS()
+	public void testWS()
 	{
 		System.out.println("Web service marche !!");
-		return null;
+		
+		RessourcesLoader.getInstance().downloadAndExtractZipFile("https://donnees.roulez-eco.fr/opendata/instantane");
 	}
 	
 	@GET
@@ -57,7 +66,7 @@ public class PointsDeVenteService {
 			initData();
 			System.out.println("Invoke getPointDeVenteCP avec codePostale : " + codePostal);
 			
-			em = DBClient.getEntityManager(MysqlClient.class);
+			em = DBClient.getEntityManager();
 			
 			pdvsCollection = em.createQuery("select pdv from PointDeVente pdv where pdv.cp = :codePostal", PointDeVente.class).
 					setParameter("codePostal", codePostal).getResultList();
@@ -84,7 +93,7 @@ public class PointsDeVenteService {
 			System.out.println("Invode getPointsDeVenteND avec numéroDapartement : " + numeroDepartement);
 			initData();
 			
-			em = DBClient.getEntityManager(MysqlClient.class);
+			em = DBClient.getEntityManager();
 			CriteriaBuilder builder = em.getCriteriaBuilder();
 			
 			CriteriaQuery<PointDeVente> query = builder.createQuery(PointDeVente.class);
@@ -124,7 +133,7 @@ public class PointsDeVenteService {
 			System.out.println("Invode getPointDeVente avec id : " + id);
 			initData();
 			
-			em = DBClient.getEntityManager(MysqlClient.class);
+			em = DBClient.getEntityManager();
 			CriteriaBuilder builder = em.getCriteriaBuilder();
 			
 			CriteriaQuery<PointDeVente> query = builder.createQuery(PointDeVente.class);
@@ -162,7 +171,7 @@ public class PointsDeVenteService {
 		{	
 			System.out.println("Invode deleteCarburant avec nomCarburant : " + nomCarburant);
 			long idLong = Long.parseLong(id);
-			em = DBClient.getEntityManager(MysqlClient.class);
+			em = DBClient.getEntityManager();
 			em.getTransaction().begin();
 			int nbUpdates = em.createQuery("delete Carburant c where c.nom = :cnom and c.pdv.id = :id")
 			.setParameter("cnom", nomCarburant).setParameter("id", idLong).executeUpdate();
@@ -179,11 +188,11 @@ public class PointsDeVenteService {
 			shutdownDBWhenException(e);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity("Error occurred while deleting data").build();
 		}
-		return Response.ok().build();
+		return getPointDeVente(id);
 	}
 	@POST
 	@Path("/pdv/{id}/{nomCarburant}")
-	@Consumes(MediaType.TEXT_PLAIN)
+	@Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	public Response addCarburant(@PathParam("id") String id, @PathParam("nomCarburant") String nomCarburant, String prix)
 	{
@@ -192,39 +201,80 @@ public class PointsDeVenteService {
 		{
 			System.out.println("addCarburant : " + prix);
 			long idLong = Long.parseLong(id);
-			em = DBClient.getEntityManager(MysqlClient.class);
-			em.getTransaction().begin();
-			em.createQuery("update Carburant c set c.prix = :newPrix where c.pdv.id = :pdvId and c.nom = :nomCarburant").
+			em = DBClient.getEntityManager();
+			Query query = em.createQuery("update Carburant c set c.prix = :newPrix where c.pdv.id = :pdvId and c.nom = :nomCarburant").
 			setParameter("nomCarburant", nomCarburant)
-			.setParameter("newPrix", Double.parseDouble(prix)).setParameter("pdvId", idLong).executeUpdate();
+			.setParameter("newPrix", Double.parseDouble(prix)).setParameter("pdvId", idLong);
+			
+			em.getTransaction().begin();
+			query.executeUpdate();
 			em.getTransaction().commit();
 			em.clear();
 			
+		}
+		catch (NumberFormatException nfe)
+		{
+			return Response.status(Status.CONFLICT).entity("Le prix doit être un nombre!!").build();
 		}
 		catch (Exception e)
 		{
 			shutdownDBWhenException(e);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity("Error occurred while updating data").build();
 		}
+		
 		return getPointDeVente(id);
 	}
 	
 	private void initData() throws Exception
 	{
-		if (!dataLoaded)
-		{
+		if (shouldLoadData())
+		{	
+			System.out.println("Update data...");
 			RessourcesLoader loader = RessourcesLoader.getInstance();
+			loader.downloadAndExtractZipFile(dataSourceURL);
 			PdvDataLoader.saveDataFromFileToDB(loader.loadRessourceFile("PrixCarburants_instantane.xml"));
-			dataLoaded = true;
 		}
 	}
 	
 	private void shutdownDBWhenException(Exception e)
 	{
 		DBClient.shutdown();
-		dataLoaded = false;
 		e.printStackTrace();
 	}
 	
-
+	private <TableClass> boolean isTableEmpty(Class<TableClass> tableClass) throws Exception
+	{
+		EntityManager em = DBClient.getEntityManager();
+		
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<PointDeVente> query1 = cb.createQuery(PointDeVente.class);
+		Root<PointDeVente> pdvs = query1.from(PointDeVente.class);
+		query1.select(pdvs);
+		return em.createQuery(query1).setFirstResult(0).setMaxResults(1).getResultList().isEmpty();
+	} 
+	
+	private boolean shouldLoadData()
+	{
+		try
+		{
+			LocalDateTime now = LocalDateTime.now();
+			if (ChronoUnit.HOURS.between(lasteUpdateDateTime, now) >= 24)
+			{
+				lasteUpdateDateTime = now;
+				return true;
+				
+			}
+			
+			if (isTableEmpty(PointsDeVenteService.class))
+				return true;
+			
+			return isTableEmpty(Carburant.class);
+		}
+		catch (Exception e)
+		{
+			shutdownDBWhenException(e);
+		}
+		
+		return true;
+	}
 }

@@ -1,8 +1,8 @@
 package devoir.partie1;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -11,34 +11,43 @@ import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
 import devoir.util.DBClient;
-import devoir.util.MysqlClient;
 import jakarta.persistence.EntityManager;
 
 public class PdvDataLoader extends DefaultHandler{
 	
-	private ArrayList<PointDeVente> pdvs;
+	
 	private PointDeVente pdv;
 	
 	private String elementContent;
+	private EntityManager em;
 	
-	protected PdvDataLoader()
+	protected PdvDataLoader() throws Exception
 	{
 		elementContent = null;
-		pdvs = new ArrayList<>();
-	}
-	
-	private static EntityManager getEntityManager() throws Exception
-	{
-		return DBClient.getEntityManager(MysqlClient.class);
+		pdv = null;
+		em = DBClient.getEntityManager();
 	}
 	
 	public static void saveDataFromFileToDB(File fileStream) throws Exception
 	{
 		PdvDataLoader instance = new PdvDataLoader();
-		instance.readXMLFile(fileStream);
+		SAXParserFactory factory = SAXParserFactory.newInstance();
+		SAXParser parser = factory.newSAXParser();
 		
-		instance.saveDataToDB();
+		parser.parse(fileStream, instance);
 		
+	}
+	
+	@Override
+	public void startDocument()
+	{
+		em.getTransaction().begin();
+	}
+	
+	@Override
+	public void endDocument()
+	{
+		em.getTransaction().commit();
 	}
 	
 	@Override
@@ -56,13 +65,23 @@ public class PdvDataLoader extends DefaultHandler{
 		}
 		else if (qname == "prix")
 		{
-			Carburant carburant = new Carburant();
-			carburant.setNom(attrs.getValue("nom"));
-			carburant.setPrix(Double.parseDouble(attrs.getValue("valeur")));
-			carburant.setDatemsj(attrs.getValue("maj"));
-			carburant.setPdv(pdv);
-			pdv.getCarburants().add(carburant);
-			carburant.setPdv(pdv);
+			
+			String majDateStr = attrs.getValue("maj");
+			
+			LocalDateTime majDate = LocalDateTime.parse(majDateStr.replace(' ', 'T'));
+			if (ChronoUnit.HOURS.between(majDate, LocalDateTime.now()) < 24)
+			{				
+				Carburant carburant = new Carburant();
+				carburant.setNom(attrs.getValue("nom"));
+				carburant.setPrix(Double.parseDouble(attrs.getValue("valeur")));
+				carburant.setDatemsj(majDateStr);
+				carburant.setPdv(pdv);
+				pdv.getCarburants().add(carburant);
+				carburant.setPdv(pdv);
+				
+				em.persist(carburant);
+			}
+			
 		}
 		
 	}
@@ -72,7 +91,7 @@ public class PdvDataLoader extends DefaultHandler{
 	{
 		if (qname == "pdv")
 		{
-			pdvs.add(pdv);
+			em.persist(pdv);
 		}
 		else if (qname == "adresse")
 		{
@@ -96,40 +115,6 @@ public class PdvDataLoader extends DefaultHandler{
 			String chars = new String(ch, start, length);
 			elementContent += chars;
 		}
-	}
-	
-	@Override
-	public String toString()
-	{
-		String res = "";
-		for (PointDeVente pointDeVente : pdvs)
-			res += pointDeVente + "\n";
-		
-		return res;
-	}
-	
-	private void readXMLFile(File fileStream) throws Exception
-	{
-		SAXParserFactory factory = SAXParserFactory.newInstance();
-		SAXParser parser = factory.newSAXParser();
-		
-		parser.parse(fileStream, this);
-	}
-	
-	private void saveDataToDB() throws Exception
-	{
-		EntityManager entityManager = PdvDataLoader.getEntityManager();
-		entityManager.getTransaction().begin();
-		
-		for(PointDeVente pdevente : pdvs)
-		{
-			entityManager.persist(pdevente);
-			List<Carburant> carburants = pdevente.getCarburants();
-			for (Carburant carburant : carburants)
-				entityManager.persist(carburant);
-		}
-		
-		entityManager.getTransaction().commit();
 	}
 
 }
