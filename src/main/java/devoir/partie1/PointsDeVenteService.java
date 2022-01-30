@@ -43,6 +43,9 @@ public class PointsDeVenteService {
 		lasteUpdateDateTime = LocalDateTime.now();
 		
 		dataSourceURL = "https://donnees.roulez-eco.fr/opendata/instantane";
+		
+		if (!DBClient.isDBAdded("pdvcarburant"))
+			DBClient.addDatabase("pdvcarburant", "pwa-mysql");
 	}
 	
 	@GET
@@ -66,7 +69,7 @@ public class PointsDeVenteService {
 			initData();
 			System.out.println("Invoke getPointDeVenteCP avec codePostale : " + codePostal);
 			
-			em = DBClient.getEntityManager();
+			em = DBClient.getEntityManager("pdvcarburant");
 			
 			pdvsCollection = em.createQuery("select pdv from PointDeVente pdv where pdv.cp = :codePostal", PointDeVente.class).
 					setParameter("codePostal", codePostal).getResultList();
@@ -93,7 +96,7 @@ public class PointsDeVenteService {
 			System.out.println("Invode getPointsDeVenteND avec numéroDapartement : " + numeroDepartement);
 			initData();
 			
-			em = DBClient.getEntityManager();
+			em = DBClient.getEntityManager("pdvcarburant");
 			CriteriaBuilder builder = em.getCriteriaBuilder();
 			
 			CriteriaQuery<PointDeVente> query = builder.createQuery(PointDeVente.class);
@@ -133,7 +136,7 @@ public class PointsDeVenteService {
 			System.out.println("Invode getPointDeVente avec id : " + id);
 			initData();
 			
-			em = DBClient.getEntityManager();
+			em = DBClient.getEntityManager("pdvcarburant");
 			CriteriaBuilder builder = em.getCriteriaBuilder();
 			
 			CriteriaQuery<PointDeVente> query = builder.createQuery(PointDeVente.class);
@@ -164,6 +167,7 @@ public class PointsDeVenteService {
 	
 	@DELETE
 	@Path("/pdv/{id}/{nomCarburant}")
+	@Produces(MediaType.TEXT_PLAIN)
 	public Response deleteCarburant(@PathParam("id") String id, @PathParam("nomCarburant") String nomCarburant)
 	{
 		EntityManager em = null;
@@ -171,7 +175,7 @@ public class PointsDeVenteService {
 		{	
 			System.out.println("Invode deleteCarburant avec nomCarburant : " + nomCarburant);
 			long idLong = Long.parseLong(id);
-			em = DBClient.getEntityManager();
+			em = DBClient.getEntityManager("pdvcarburant");
 			em.getTransaction().begin();
 			int nbUpdates = em.createQuery("delete Carburant c where c.nom = :cnom and c.pdv.id = :id")
 			.setParameter("cnom", nomCarburant).setParameter("id", idLong).executeUpdate();
@@ -188,7 +192,7 @@ public class PointsDeVenteService {
 			shutdownDBWhenException(e);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity("Error occurred while deleting data").build();
 		}
-		return getPointDeVente(id);
+		return Response.ok().build();
 	}
 	@POST
 	@Path("/pdv/{id}/{nomCarburant}")
@@ -201,7 +205,7 @@ public class PointsDeVenteService {
 		{
 			System.out.println("addCarburant : " + prix);
 			long idLong = Long.parseLong(id);
-			em = DBClient.getEntityManager();
+			em = DBClient.getEntityManager("pdvcarburant");
 			Query query = em.createQuery("update Carburant c set c.prix = :newPrix where c.pdv.id = :pdvId and c.nom = :nomCarburant").
 			setParameter("nomCarburant", nomCarburant)
 			.setParameter("newPrix", Double.parseDouble(prix)).setParameter("pdvId", idLong);
@@ -238,13 +242,15 @@ public class PointsDeVenteService {
 	
 	private void shutdownDBWhenException(Exception e)
 	{
-		DBClient.shutdown();
+		System.out.println("Execption !! Restart Database");
+		DBClient.shutdown("pdvcarburant");
+		DBClient.addDatabase("pdvcarburant", "pwa-mysql");
 		e.printStackTrace();
 	}
 	
 	private <TableClass> boolean isTableEmpty(Class<TableClass> tableClass) throws Exception
 	{
-		EntityManager em = DBClient.getEntityManager();
+		EntityManager em = DBClient.getEntityManager("pdvcarburant");
 		
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<PointDeVente> query1 = cb.createQuery(PointDeVente.class);

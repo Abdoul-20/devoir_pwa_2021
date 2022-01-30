@@ -25,7 +25,7 @@ public class PdvDataLoader extends DefaultHandler{
 	{
 		elementContent = null;
 		pdv = null;
-		em = DBClient.getEntityManager();
+		em = DBClient.getEntityManager("pdvcarburant");
 	}
 	
 	public static void saveDataFromFileToDB(File fileStream) throws Exception
@@ -89,7 +89,7 @@ public class PdvDataLoader extends DefaultHandler{
 	@Override
 	public void endElement(String uri, String localName, String qname)
 	{
-		if (qname == "pdv")
+		if (qname == "pdv" && !pdv.getCarburants().isEmpty())
 		{
 			em.persist(pdv);
 		}

@@ -1,7 +1,6 @@
 package devoir.tests;
 
 import java.time.LocalDateTime;
-import java.time.Period;
 
 public class Main {
 

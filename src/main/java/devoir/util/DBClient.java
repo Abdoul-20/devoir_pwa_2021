@@ -1,31 +1,45 @@
 package devoir.util;
 
+import java.util.HashMap;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
 public class DBClient {
-	
-	private static DBClient instance = null;
 
-	
+	private static HashMap<String, DBClient> dbInstances;
 	private EntityManager em;
 	
-	public static EntityManager getEntityManager() throws Exception
+	
+	static
 	{
-		if (instance == null)
-			instance = new DBClient("pwa-mysql");
-		
-		return instance.em;
+		dbInstances = new HashMap<>();
 	}
 	
-	public static void shutdown()
+	public static void addDatabase(String dbName, String persistanceUnitName)
 	{
-		if (instance != null)
-		{			
-			instance.em.close();
-			instance = null;
-		}
+		dbInstances.put(dbName, new DBClient(persistanceUnitName));
+	}
+	
+	public static EntityManager getEntityManager(String dbName)
+	{
+		DBClient client = dbInstances.get(dbName);
+		if (client != null)
+			return client.em;
+		
+		throw new IllegalArgumentException("La base de données " + dbName + " n'est pas enregistrée");
+	}
+	
+	public static void shutdown(String dbName)
+	{
+		getEntityManager(dbName).close();
+		dbInstances.remove(dbName);
+	}
+	
+	public static boolean isDBAdded(String dbName)
+	{
+		return dbInstances.containsKey(dbName);
 	}
 	
 	protected DBClient(String dbUnit)
