@@ -9,16 +9,36 @@
         <description>PWA-JPA</description>
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
- 
+ 		
         <properties>
             <!-- database -->
             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver" />
             <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/pdvcarburant?createDatabaseIfNotExist=true" />
-            <property name="jakarta.persistence.jdbc.user" value="ing" />
-            <property name="jakarta.persistence.jdbc.password" value="Afdol2003" />
+            <!-- Changer ces informations pour se connecter avec votre serveur de base de données -->
+            <property name="jakarta.persistence.jdbc.user" value="root" />
+            <property name="jakarta.persistence.jdbc.password" value="root" />
                  
             <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
         </properties>
     </persistence-unit>
+    
+    <persistence-unit name="pwa-mysql2">
+        <description>PWA-JPA</description>
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+ 
+        <properties>
+            <!-- database -->
+            <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver" />
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/parcvehicule?createDatabaseIfNotExist=true" />
+            <property name="jakarta.persistence.jdbc.user" value="root" />
+            <!-- Changer ces informations pour se connecter avec votre serveur de base de données -->
+            <property name="jakarta.persistence.jdbc.password" value="root" />
+                 
+            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
+        </properties>
+    </persistence-unit>
+    
 </persistence>
