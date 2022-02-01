@@ -253,8 +253,8 @@ public class PointsDeVenteService {
 		EntityManager em = DBClient.getEntityManager("pdvcarburant");
 		
 		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<PointDeVente> query1 = cb.createQuery(PointDeVente.class);
-		Root<PointDeVente> pdvs = query1.from(PointDeVente.class);
+		CriteriaQuery<TableClass> query1 = cb.createQuery(tableClass);
+		Root<TableClass> pdvs = query1.from(tableClass);
 		query1.select(pdvs);
 		return em.createQuery(query1).setFirstResult(0).setMaxResults(1).getResultList().isEmpty();
 	} 
@@ -267,6 +267,12 @@ public class PointsDeVenteService {
 			if (ChronoUnit.HOURS.between(lasteUpdateDateTime, now) >= 24)
 			{
 				lasteUpdateDateTime = now;
+
+				EntityManager em = DBClient.getEntityManager("pdvcarburant");
+				em.getTransaction().begin();
+				em.createQuery("delete from PointDeVente").executeUpdate();
+				em.createQuery("delete from Carburant").executeUpdate();
+				em.getTransaction().commit();
 				return true;
 				
 			}

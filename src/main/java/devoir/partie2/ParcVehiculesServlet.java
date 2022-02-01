@@ -33,11 +33,18 @@ public class ParcVehiculesServlet extends HttpServlet {
         DBClient.addDatabase("parcvehicule", "pwa-mysql2");
         
         controllers = new HashMap<>();
-        controllers.put("ajouterVehiculeBtn", new AjouterVehiculeControleur());
+        
+        VehiculeFormulaireController vfc = new VehiculeFormulaireController();
+        controllers.put("ajouterVehiculeBtn", vfc);
+        controllers.put("ajouterVehicule_ajouterApprovisionBtn", vfc);
+        controllers.put("ajouterVehiculeEntry", vfc);
+        controllers.put("modifierVehiculeBtn_goto", vfc);
+        controllers.put("modifierVehiculeBtn_save", vfc);
+        controllers.put("modifierVehicule_ajouterApprovisionBtn", vfc);
+        controllers.put("supprimerVehiculeBtn", vfc);
+        
         controllers.put("listeVehicules", new ListVehiculesControleur());
-        ModifierVehiculeController mvc = new ModifierVehiculeController();
-        controllers.put("modifierVehiculeBtn_goto", mvc);
-        controllers.put("modifierVehiculeBtn_save", mvc);
+        
     }
 
 	/**

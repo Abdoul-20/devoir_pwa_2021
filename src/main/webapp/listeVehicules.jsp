@@ -49,7 +49,7 @@
 								       <td>
 								        <div class="f2">
 									        <form action="ParcVehiculesServlet" method="post">
-										        <button name="supprimerVehiculeBtn" value="${vheicule.immatriculation }"
+										        <button name="supprimerVehiculeBtn" value="${vehicule.immatriculation }"
 										        style="background-color: transparent; border: none;">
 										        	<img src="img/excluirblack.png" width="25px">
 										        </button>

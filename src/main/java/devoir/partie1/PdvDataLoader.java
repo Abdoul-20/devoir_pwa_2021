@@ -41,7 +41,9 @@ public class PdvDataLoader extends DefaultHandler{
 	@Override
 	public void startDocument()
 	{
+		
 		em.getTransaction().begin();
+		
 	}
 	
 	@Override

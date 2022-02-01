@@ -35,10 +35,15 @@
                     <div class="nav-item dropdown">
 	                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">service</a>
 	                        <div class="dropdown-menu">
-	                        	<a class="dropdown-item" href="ParcVehiculesServlet?method=post&listeVehicules=1">
-	                        	liste de véhicules </a>
-	                            <a href="Ajouter_véhicule.jsp" class="dropdown-item">Ajouter Véhicule</a>
-	                            <!--  <a href="Modifier_véhicule.jsp" class="dropdown-item">Modifier Véhicule</a>-->
+	                        	<form action="ParcVehiculesServlet" method="post">
+	                        		<button class="dropdown-item" name="listeVehicules" type="submit">
+	                        			liste de véhicules
+	                        		</button>
+	                        		
+	                        		<button class="dropdown-item" name="ajouterVehiculeEntry" type="submit">
+	                        			Ajouter Véhicule
+	                        		</button>
+	                        	</form>
 	                        </div>
                     </div>
                 </div>

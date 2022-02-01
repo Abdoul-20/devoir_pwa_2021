@@ -7,9 +7,9 @@
 
 		 <jsp:include page="barAndNav.jsp"/>
         
-        
 		<c:set var="formulaireTitle" value="Ajouter un véhicule" scope="request"/>
 		<c:set var="submitBtnName" value="ajouterVehiculeBtn" scope="request"/>
+		<c:set var="ajouterApprovisionBtn" value="ajouterVehicule_ajouterApprovisionBtn" scope="request"/>
 		<jsp:include page="vehiculeFormulaire.jsp"/>
 
 	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
